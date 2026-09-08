@@ -15,7 +15,8 @@ export function setOwnerSession(event: H3Event) {
   setCookie(event, SESSION_COOKIE, session.token, {
     httpOnly: true,
     secure: platformOrigin().startsWith('https:'),
-    sameSite: 'strict',
+    // The app gateway returns through a top-level GET; writes still require our exact Origin.
+    sameSite: 'lax',
     path: '/',
     expires: new Date(session.expiresAt),
   })

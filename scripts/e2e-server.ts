@@ -19,6 +19,7 @@ try {
 const env = {
   ...process.env,
   SERVITAS_DATA_DIR: dataDir,
+  SERVITAS_APPS_ORIGIN: '',
   SERVITAS_ORIGIN: 'http://127.0.0.1:3100',
   SERVITAS_BOOTSTRAP_TOKEN: 'test-installation-key-not-for-production',
   SERVITAS_DOCKER_SOCKET: socket,

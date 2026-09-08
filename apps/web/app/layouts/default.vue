@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Boxes, Activity, LogOut, ArrowUpRight } from '@lucide/vue'
+import { Boxes, Activity, LogOut, ArrowUpRight, Archive } from '@lucide/vue'
 import type { AuthStatus } from '@servitas/contracts'
 import { errorMessage } from '~/lib/format'
 const auth = useState<AuthStatus | null>('auth')
@@ -32,7 +32,7 @@ async function logout() {
     >
       <div class="flex items-center justify-between p-5 md:px-6 md:py-8">
         <NuxtLink to="/" aria-label="Servitas home"><BrandMark /></NuxtLink
-        ><UiBadge variant="outline" class="text-[10px] font-normal md:hidden">Foundation</UiBadge>
+        ><UiBadge variant="outline" class="text-[10px] font-normal md:hidden">Preview</UiBadge>
       </div>
       <nav aria-label="Main navigation" class="flex gap-1 px-3 pb-3 md:flex-col">
         <NuxtLink
@@ -46,6 +46,12 @@ async function logout() {
           class="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"
           active-class="!bg-white !text-foreground shadow-xs"
           ><Activity :size="17" aria-hidden="true" />Platform</NuxtLink
+        >
+        <NuxtLink
+          to="/backups"
+          class="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"
+          active-class="!bg-white !text-foreground shadow-xs"
+          ><Archive :size="17" aria-hidden="true" />Backups</NuxtLink
         >
       </nav>
       <div class="hidden px-6 py-6 md:mt-auto md:block">
@@ -61,7 +67,7 @@ async function logout() {
           <span class="size-1.5 rounded-full bg-primary" aria-hidden="true" /><span
             >Personal workspace</span
           ><UiBadge variant="outline" class="ml-2 hidden text-[10px] font-normal sm:inline-flex"
-            >Foundation</UiBadge
+            >Preview</UiBadge
           >
         </div>
         <div class="flex min-w-0 items-center gap-3">

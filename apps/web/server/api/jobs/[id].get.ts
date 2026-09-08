@@ -1,4 +1,4 @@
-import { getJob, jobEvents } from '@servitas/core'
+import { getJob, jobEvents, getRepositoryInspection } from '@servitas/core'
 import { requireOwner } from '../../utils/auth'
 import { platformDatabase } from '../../utils/platform'
 
@@ -8,5 +8,9 @@ export default defineEventHandler((event) => {
   const db = platformDatabase()
   const job = getJob(db, id)
   if (!job) throw createError({ statusCode: 404, statusMessage: 'Operation not found.' })
-  return { job, events: jobEvents(db, id) }
+  const inspection = job.kind === 'repository.inspect' ? getRepositoryInspection(db, id) : null
+  const configurationReviewPath = inspection
+    ? `${inspection.request.appId ? `/apps/${inspection.request.appId}/edit` : '/apps/new'}?configurationJob=${id}`
+    : null
+  return { job, events: jobEvents(db, id), configurationReviewPath }
 })

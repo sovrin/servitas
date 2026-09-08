@@ -1,0 +1,13 @@
+# App updates and recovery
+
+The active `apps` row describes the version currently selected for routing. An accepted update inserts one `app.update` job and one `app_revisions` row in the same transaction. The revision holds the candidate manifest, encrypted environment, previous settings and image, resolved source, candidate container, logs, and execution phase. Accepting an update does not overwrite active settings.
+
+The worker builds or pulls first. For an app without named volumes, the current container keeps serving while the candidate is checked. With volumes on either version, the worker persists the maintenance phase, removes traffic, and stops the old container before starting the replacement. A persistent flag records that candidate code may have touched data before the start call is issued.
+
+After health passes, the worker publishes the candidate route, atomically activates its settings and container in SQLite under the job lease, then stops the previous container. A crash between these steps can replay the recorded phase and deterministic candidate name. Observations stop obsolete running containers when no operation is active. Old containers/images are retained for recovery and app removal cleans up every container labeled for that app; named data volumes remain intact. Automatic image/history garbage collection is not implemented yet.
+
+A failure before candidate startup can leave the previous version selected. Stateless candidate failure leaves its active predecessor serving. Stateful candidate failure leaves the app stopped and requires a compatibility decision before older code runs again. Previous-version recovery creates a new update from the saved image and encrypted settings. The confirmation is bound to the displayed revision and active generation. It does not restore or overwrite volume data.
+
+Retries create a new serialized update using the failed target's saved configuration and resolved image or Git commit. Job/revision writes are fenced by the lease; expired jobs can be reclaimed, and repeated interruptions terminate with a durable failure instead of an endless retry loop. Stale runtime side effects are reconciled by ownership labels and recorded container names. Run one worker per installation.
+
+Owner-only API routes validate configuration and exact request origin. Secret values are encrypted in active and revision records, are not returned to the browser, and are redacted literally from stored build/runtime output. Access changes invalidate existing gateway sessions. Private access still uses app-bound sessions and the gateway strips platform cookies before proxying.

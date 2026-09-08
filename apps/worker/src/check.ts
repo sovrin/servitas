@@ -2,6 +2,7 @@ import { statfs } from 'node:fs/promises'
 import type { DatabaseSync } from 'node:sqlite'
 import { finishJob, reportProgress, renewLease, type ClaimedJob } from '@servitas/core'
 import { dockerVersion } from './docker'
+import Docker from 'dockerode'
 
 export async function runPlatformCheck(
   db: DatabaseSync,
@@ -33,6 +34,22 @@ export async function runPlatformCheck(
     }
     if (!reportProgress(db, claim, 'Connecting to the container runtime.')) return
     const version = await dockerVersion(socketPath)
+    const info = await new Docker({ socketPath, timeout: 5000 }).info()
+    if (
+      !Number.isInteger(info.NCPU) ||
+      info.NCPU < 1 ||
+      !Number.isFinite(info.MemTotal) ||
+      info.MemTotal <= 0
+    )
+      throw new Error('Invalid runtime capacity response.')
+    if (
+      !reportProgress(
+        db,
+        claim,
+        `Runtime capacity: ${info.NCPU} CPUs, ${Math.floor(info.MemTotal / 1024 / 1024)} MB memory. Worker Node.js ${process.versions.node}.`,
+      )
+    )
+      return
     finishJob(db, claim, 'succeeded', `Platform checks passed. Docker ${version} is available.`)
   } catch {
     finishJob(

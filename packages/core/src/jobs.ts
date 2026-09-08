@@ -4,17 +4,19 @@ import type { Job, JobEvent } from '@servitas/contracts'
 import { transaction } from './database'
 
 const fields = `id, kind, status, created_at AS createdAt, started_at AS startedAt,
-  finished_at AS finishedAt, attempts, message`
+  finished_at AS finishedAt, attempts, message, app_id AS appId`
 export const LEASE_MS = 30_000
 export interface ClaimedJob {
   job: Job
   leaseToken: string
 }
 
-export function listJobs(db: DatabaseSync): Job[] {
+export function listJobs(db: DatabaseSync, appId?: string): Job[] {
   return db
-    .prepare(`SELECT ${fields} FROM jobs ORDER BY created_at DESC, rowid DESC LIMIT 50`)
-    .all() as unknown as Job[]
+    .prepare(
+      `SELECT ${fields} FROM jobs ${appId ? 'WHERE app_id = ?' : ''} ORDER BY created_at DESC, rowid DESC LIMIT 50`,
+    )
+    .all(...(appId ? [appId] : [])) as unknown as Job[]
 }
 
 export function getJob(db: DatabaseSync, id: string): Job | null {
@@ -66,12 +68,24 @@ export function claimJob(db: DatabaseSync, now = Date.now()): ClaimedJob | null 
       )
       .all(now) as { id: string }[]
     for (const { id } of expired) {
-      const message = 'The worker was interrupted repeatedly. Run the check again.'
+      const message = 'The worker was interrupted repeatedly. Retry the operation.'
       db.prepare(
         "UPDATE jobs SET status = 'failed', finished_at = ?, message = ?, lease_token = NULL, lease_until = NULL WHERE id = ?",
       ).run(now, message, id)
       event(db, id, message, now)
+      db.prepare(
+        `UPDATE app_revisions SET requires_recovery = CASE WHEN phase IN ('maintenance','started') AND
+        (json_array_length(manifest, '$.volumes') > 0 OR json_array_length(previous, '$.manifest.volumes') > 0) THEN 1 ELSE requires_recovery END,
+        phase = CASE WHEN phase = 'applied' THEN phase ELSE 'failed' END WHERE id = ?`,
+      ).run(id)
+      db.prepare(
+        `UPDATE apps SET status = CASE WHEN EXISTS (SELECT 1 FROM backup_operations WHERE id = ? AND phase = 'applied') OR EXISTS (SELECT 1 FROM app_revisions WHERE id = ? AND
+        (phase = 'applied' OR (requires_recovery = 0 AND apps.status = 'running'))) THEN status ELSE 'failed' END,
+        message = ? WHERE id = (SELECT app_id FROM jobs WHERE id = ?)`,
+      ).run(id, id, message, id)
     }
+    // Let the worker clean up helpers from terminal operations before claiming new app work.
+    if (expired.length) return null
     const next = db
       .prepare(
         `SELECT id FROM jobs WHERE status = 'queued' OR (status = 'running' AND lease_until <= ?) ORDER BY created_at LIMIT 1`,
@@ -81,11 +95,19 @@ export function claimJob(db: DatabaseSync, now = Date.now()): ClaimedJob | null 
     const leaseToken = randomUUID()
     db.prepare(
       `UPDATE jobs SET status = 'running', started_at = COALESCE(started_at, ?), attempts = attempts + 1,
-      lease_token = ?, lease_until = ?, message = 'Checking the platform.' WHERE id = ?`,
+      lease_token = ?, lease_until = ?, message = 'Worker started the operation.' WHERE id = ?`,
     ).run(now, leaseToken, now + LEASE_MS, next.id)
-    event(db, next.id, 'Worker started the platform check.', now)
+    event(db, next.id, 'Worker started the operation.', now)
     return { job: getJob(db, next.id)!, leaseToken }
   })
+}
+
+export function ownsLease(db: DatabaseSync, claim: ClaimedJob, now = Date.now()) {
+  return !!db
+    .prepare(
+      "SELECT 1 FROM jobs WHERE id = ? AND lease_token = ? AND status = 'running' AND lease_until > ?",
+    )
+    .get(claim.job.id, claim.leaseToken, now)
 }
 
 export function renewLease(db: DatabaseSync, claim: ClaimedJob, now = Date.now()) {

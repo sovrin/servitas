@@ -16,7 +16,10 @@
     "check": "pnpm typecheck && pnpm test",
     "owner:reset": "node --env-file-if-exists=.env --import tsx scripts/reset-owner.ts",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "schema:generate": "tsx scripts/generate-schema.ts",
+    "test:backups": "tsx scripts/test-backups.ts",
+    "test:beta": "tsx scripts/test-backups.ts --beta"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",

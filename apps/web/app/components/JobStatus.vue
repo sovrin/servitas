@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { JobStatus } from '@servitas/contracts'
 defineProps<{ status: JobStatus }>()
-const labels = { queued: 'Queued', running: 'Running', succeeded: 'Passed', failed: 'Failed' }
+const labels = { queued: 'Queued', running: 'Running', succeeded: 'Completed', failed: 'Failed' }
 </script>
 
 <template>

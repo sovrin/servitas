@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ArrowLeft, RefreshCw } from '@lucide/vue'
 import { errorMessage, formatTime } from '~/lib/format'
-useHead({ title: 'Platform check · Servitas' })
+import { jobLabels } from '@servitas/contracts'
 const route = useRoute()
 const { data, error, refresh } = await useFetch(() => `/api/jobs/${route.params.id}`)
 usePolling(refresh)
+useHead({ title: () => `${data.value ? jobLabels[data.value.job.kind] : 'Operation'} · Servitas` })
 const submitting = ref(false)
 const retryError = ref('')
 async function retry() {
@@ -24,9 +25,11 @@ async function retry() {
 <template>
   <div>
     <NuxtLink
-      to="/platform"
+      :to="data?.job.appId ? `/apps/${data.job.appId}` : '/platform'"
       class="mb-7 inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
-      ><ArrowLeft :size="14" aria-hidden="true" />Back to platform</NuxtLink
+      ><ArrowLeft :size="14" aria-hidden="true" />{{
+        data?.job.appId ? 'Back to app' : 'Back to platform'
+      }}</NuxtLink
     >
     <p v-if="retryError" role="alert" class="mb-4 text-sm text-destructive">{{ retryError }}</p>
     <div v-if="error" role="alert">
@@ -37,15 +40,25 @@ async function retry() {
       <div class="mb-8 flex flex-wrap items-end justify-between gap-5">
         <div>
           <div class="mb-3 flex items-center gap-3">
-            <h1 class="text-2xl font-semibold tracking-tight">Platform check</h1>
+            <h1 class="text-2xl font-semibold tracking-tight">{{ jobLabels[data.job.kind] }}</h1>
             <JobStatus :status="data.job.status" />
           </div>
           <p class="text-sm text-muted-foreground">
-            Storage, worker connection, and container runtime.
+            {{
+              data.job.appId
+                ? 'Saved progress for this app operation.'
+                : ['backup.check', 'platform.backup'].includes(data.job.kind)
+                  ? 'Saved backup progress and recovery details.'
+                  : data.job.kind === 'repository.inspect'
+                    ? 'Saved repository configuration and progress.'
+                    : 'Storage, worker connection, and container runtime.'
+            }}
           </p>
         </div>
         <UiButton
-          v-if="['succeeded', 'failed'].includes(data.job.status)"
+          v-if="
+            data.job.kind === 'platform.check' && ['succeeded', 'failed'].includes(data.job.status)
+          "
           variant="outline"
           :disabled="submitting"
           @click="retry"
@@ -64,6 +77,20 @@ async function retry() {
       >
         {{ data.job.message }}
       </p>
+      <NuxtLink
+        v-if="data.configurationReviewPath"
+        :to="data.configurationReviewPath"
+        class="mb-6 inline-block text-sm underline"
+        >Review repository configuration</NuxtLink
+      >
+      <NuxtLink
+        v-if="
+          ['backup.check', 'platform.backup', 'app.backup', 'app.restore'].includes(data.job.kind)
+        "
+        :to="data.job.appId ? `/backups?app=${data.job.appId}` : '/backups'"
+        class="mb-6 inline-block text-sm underline"
+        >Back to backups</NuxtLink
+      >
       <dl class="mb-8 grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
         <div>
           <dt class="mb-1 text-xs text-muted-foreground">Created</dt>

@@ -1,5 +1,5 @@
 {
-  admin off
+  admin unix//run/servitas-admin.sock
 }
 
 {$SERVITAS_ADDRESS::80} {

@@ -24,12 +24,15 @@ if (!socketPath) {
 const env = {
   ...process.env,
   SERVITAS_DATA_DIR: dataDir,
+  // Hosted apps need the containerized worker and gateway from Compose.
+  SERVITAS_APPS_ORIGIN: '',
   SERVITAS_ORIGIN: process.env.SERVITAS_ORIGIN || 'http://localhost:3000',
   SERVITAS_BOOTSTRAP_TOKEN:
     process.env.SERVITAS_BOOTSTRAP_TOKEN || readFileSync(tokenPath, 'utf8').trim(),
   SERVITAS_DOCKER_SOCKET: socketPath || '/var/run/docker.sock',
 }
-console.info(`Servitas: ${env.SERVITAS_ORIGIN}`)
+console.info(`Servitas dashboard development: ${env.SERVITAS_ORIGIN}`)
+console.info('Use Docker Compose for app deployment and routing; see README.md.')
 console.info(
   `Initial setup key: ${process.env.SERVITAS_BOOTSTRAP_TOKEN ? 'configured in environment' : tokenPath}`,
 )

@@ -2,6 +2,7 @@
 import { ArrowRight, LockKeyhole } from '@lucide/vue'
 import { errorMessage } from '~/lib/format'
 const props = defineProps<{ setup?: boolean }>()
+const route = useRoute()
 const email = ref('')
 const password = ref('')
 const token = ref('')
@@ -21,7 +22,12 @@ async function submit() {
     })
     password.value = ''
     token.value = ''
-    await navigateTo('/')
+    const next =
+      typeof route.query.next === 'string' && /^\/open\/[a-f0-9-]{36}$/.test(route.query.next)
+        ? route.query.next
+        : '/'
+    if (next.startsWith('/open/')) await navigateTo(next, { external: true })
+    else await navigateTo('/')
   } catch (cause) {
     error.value = errorMessage(cause)
   } finally {

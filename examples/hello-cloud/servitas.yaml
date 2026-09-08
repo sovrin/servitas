@@ -1,0 +1,14 @@
+version: 1
+name: hello-cloud
+port: 3000
+healthCheck: /health
+access: private
+resources:
+  memoryMb: 128
+  cpu: 0.5
+volumes:
+  - name: data
+    mountPath: /data
+requiredEnv: []
+# Select the repository and revision in Servitas before importing this file.
+# Use examples/hello-cloud/Dockerfile when deploying from the Servitas repository.

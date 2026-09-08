@@ -16,17 +16,33 @@ test('records a successful runtime check and a recoverable connection failure', 
   const dir = mkdtempSync(join(tmpdir(), 'sv-'))
   const socket = join(dir, 'docker.sock')
   const db = openDatabase(dir)
+  let validCapacity = true
   const server = createServer((req, res) => {
-    expect(req.url).toBe('/version')
     res.setHeader('content-type', 'application/json')
-    res.end(JSON.stringify({ Version: '29.7.2' }))
+    if (req.url === '/version') res.end(JSON.stringify({ Version: '29.7.2' }))
+    else if (req.url === '/info')
+      res.end(
+        JSON.stringify(validCapacity ? { NCPU: 4, MemTotal: 2147483648 } : { NCPU: 'unknown' }),
+      )
+    else {
+      res.statusCode = 404
+      res.end()
+    }
   })
   try {
     await new Promise<void>((resolve) => server.listen(socket, resolve))
     const job = enqueuePlatformCheck(db)
     await runPlatformCheck(db, claimJob(db)!, dir, socket)
     expect(getJob(db, job.id)?.status).toBe('succeeded')
-    expect(jobEvents(db, job.id).length).toBeGreaterThan(3)
+    expect(
+      jobEvents(db, job.id)
+        .map((event) => event.message)
+        .join(' '),
+    ).toContain('4 CPUs, 2048 MB memory')
+    validCapacity = false
+    const malformed = enqueuePlatformCheck(db)
+    await runPlatformCheck(db, claimJob(db)!, dir, socket)
+    expect(getJob(db, malformed.id)?.status).toBe('failed')
     await new Promise<void>((resolve, reject) =>
       server.close((error) => (error ? reject(error) : resolve())),
     )

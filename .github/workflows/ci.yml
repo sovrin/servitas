@@ -18,3 +18,5 @@ jobs:
         env:
           SERVITAS_REQUIRE_DOCKER: '1'
       - run: pnpm test:compose
+      - run: pnpm test:backups
+      - run: pnpm test:beta

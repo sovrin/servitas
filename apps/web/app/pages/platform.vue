@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { ArrowUpRight, RefreshCw, Server, CircleCheck } from '@lucide/vue'
 import { formatTime, errorMessage } from '~/lib/format'
+import { jobLabels } from '@servitas/contracts'
 useHead({ title: 'Platform · Servitas' })
 const { data, error, refresh } = await useFetch('/api/platform')
 usePolling(refresh)
 const submitting = ref(false)
 const submitError = ref('')
 const activeJob = computed(() =>
-  data.value?.jobs.find((job) => ['queued', 'running'].includes(job.status)),
+  data.value?.jobs.find(
+    (job) => job.kind === 'platform.check' && ['queued', 'running'].includes(job.status),
+  ),
 )
 async function runCheck() {
   submitting.value = true
@@ -99,11 +102,9 @@ async function runCheck() {
               class="flex flex-wrap items-center justify-between gap-3 px-5 py-4 hover:bg-muted"
               ><div class="min-w-0">
                 <div class="flex items-center gap-2 text-sm font-medium">
-                  <CircleCheck
-                    :size="15"
-                    class="text-muted-foreground"
-                    aria-hidden="true"
-                  />Platform check
+                  <CircleCheck :size="15" class="text-muted-foreground" aria-hidden="true" />{{
+                    jobLabels[job.kind]
+                  }}
                 </div>
                 <p class="mt-1 text-xs leading-relaxed text-muted-foreground">{{ job.message }}</p>
               </div>
