@@ -1,0 +1,27 @@
+name: Integration
+# Real-Docker end-to-end harnesses: they build the Compose platform, drive it
+# through a browser, and manage nested app containers. These need more memory
+# than a hosted runner reliably provides, so this workflow is intentionally
+# non-blocking — run it on demand or nightly, and locally before merging Docker
+# or lifecycle changes (see AGENTS.md). It is not a required pull-request check.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --global pnpm@11.15.1
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+        env:
+          SERVITAS_REQUIRE_DOCKER: '1'
+      - run: pnpm test:compose
+      - run: pnpm test:backups
+      - run: pnpm test:beta

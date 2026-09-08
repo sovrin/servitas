@@ -1,0 +1,10 @@
+packages:
+  - apps/*
+  - packages/*
+allowBuilds:
+  esbuild: true
+  '@tailwindcss/oxide': true
+  vue-demi: true
+  cpu-features: false
+  protobufjs: false
+  ssh2: false

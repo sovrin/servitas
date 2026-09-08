@@ -1,0 +1,10 @@
+{
+  admin unix//run/servitas-admin.sock
+}
+
+{$SERVITAS_ADDRESS::80} {
+  request_body {
+    max_size 64KB
+  }
+  reverse_proxy web:3000
+}

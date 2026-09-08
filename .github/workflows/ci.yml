@@ -1,0 +1,18 @@
+name: Checks
+# Portable, deterministic gate for every push and pull request: type checks, unit
+# tests, formatting, and builds. The real-Docker integration harnesses live in
+# integration.yml because hosted runners lack the memory to run them reliably.
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --global pnpm@11.15.1
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm format:check
+      - run: pnpm build

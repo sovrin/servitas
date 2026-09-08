@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "name": "hello-cloud",
+  "port": 3000,
+  "healthCheck": "/health",
+  "access": "private",
+  "resources": { "memoryMb": 128, "cpu": 0.5 },
+  "volumes": [{ "name": "data", "mountPath": "/data" }],
+  "requiredEnv": []
+}

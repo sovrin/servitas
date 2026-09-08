@@ -1,0 +1,15 @@
+{
+  "name": "@servitas/contracts",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./configuration": "./src/configuration.ts",
+    "./backups": "./src/backups.ts",
+    "./templates": "./src/templates.ts"
+  },
+  "dependencies": {
+    "yaml": "2.9.0",
+    "zod": "4.5.4"
+  }
+}

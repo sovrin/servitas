@@ -1,0 +1,32 @@
+{
+  "name": "servitas",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.15.1",
+  "engines": {
+    "node": ">=24.0.0 <27"
+  },
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --import tsx scripts/dev.ts",
+    "build": "pnpm --filter @servitas/web build && pnpm --filter @servitas/worker build",
+    "typecheck": "tsc --noEmit && pnpm --filter @servitas/web typecheck",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:compose": "tsx scripts/test-compose.ts",
+    "check": "pnpm typecheck && pnpm test",
+    "owner:reset": "node --env-file-if-exists=.env --import tsx scripts/reset-owner.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "schema:generate": "tsx scripts/generate-schema.ts",
+    "test:backups": "tsx scripts/test-backups.ts",
+    "test:beta": "tsx scripts/test-backups.ts --beta"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "24.13.3",
+    "prettier": "3.9.6",
+    "tsx": "4.23.13",
+    "typescript": "5.9.3",
+    "vitest": "5.0.0"
+  }
+}
