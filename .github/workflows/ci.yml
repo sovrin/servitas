@@ -1,4 +1,7 @@
 name: Checks
+# Portable, deterministic gate for every push and pull request: type checks, unit
+# tests, formatting, and builds. The real-Docker integration harnesses live in
+# integration.yml because hosted runners lack the memory to run them reliably.
 on: [push, pull_request]
 jobs:
   check:
@@ -13,10 +16,3 @@ jobs:
       - run: pnpm check
       - run: pnpm format:check
       - run: pnpm build
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
-        env:
-          SERVITAS_REQUIRE_DOCKER: '1'
-      - run: pnpm test:compose
-      - run: pnpm test:backups
-      - run: pnpm test:beta

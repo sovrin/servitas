@@ -31,6 +31,7 @@ Give common tasks direct, labeled controls. Show advanced settings progressively
 - Preserve app data across ordinary lifecycle operations. Permanent deletion and restore-overwrite need explicit confirmation in the product UI.
 - Keep background operations durable and their progress observable after navigation or reconnection. Report failures truthfully and provide supported recovery actions.
 - Verify the behavior and failure paths affected by a change. Use real runtime integration checks for orchestration and browser checks for management workflows where appropriate; do not substitute tests that only mirror code structure.
+- `pnpm check`, `pnpm format:check`, and `pnpm build` run on every push and pull request (the `Checks` workflow) and must stay green. The real-Docker harnesses (`test:e2e`, `test:compose`, `test:backups`, `test:beta`) need more memory than a hosted runner reliably provides, so they run in the non-blocking `Integration` workflow (manual or nightly); run them locally before merging orchestration, lifecycle, or backup changes.
 
 ## Focused skills
 
