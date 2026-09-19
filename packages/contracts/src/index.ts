@@ -161,7 +161,13 @@ export const createAppSchema = z
   })
 export type CreateAppInput = z.infer<typeof createAppSchema>
 export type AppStatus =
-  'pending' | 'deploying' | 'running' | 'stopped' | 'failed' | 'removed' | 'unknown'
+  | 'pending'
+  | 'deploying'
+  | 'running'
+  | 'stopped'
+  | 'failed'
+  | 'removed'
+  | 'unknown'
 export interface HostedApp {
   id: string
   name: string

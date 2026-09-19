@@ -29,7 +29,8 @@ function parse(row: Row): AppRevision {
 }
 export function getRevision(db: DatabaseSync, id: string) {
   const row = db.prepare(`SELECT ${fields} FROM app_revisions WHERE id = ?`).get(id) as
-    Row | undefined
+    | Row
+    | undefined
   return row ? parse(row) : null
 }
 export function listRevisions(db: DatabaseSync, appId: string) {

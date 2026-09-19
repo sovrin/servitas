@@ -166,6 +166,7 @@ export function heartbeat(db: DatabaseSync, now = Date.now()) {
 
 export function workerStatus(db: DatabaseSync, now = Date.now()) {
   const row = db.prepare('SELECT last_seen_at FROM worker_heartbeat WHERE id = 1').get() as
-    { last_seen_at: number } | undefined
+    | { last_seen_at: number }
+    | undefined
   return { online: !!row && now - row.last_seen_at < 15_000, lastSeenAt: row?.last_seen_at ?? null }
 }

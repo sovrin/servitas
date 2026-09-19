@@ -155,7 +155,8 @@ function insertAppBackup(db: DatabaseSync, appId: string, destinationId: string)
 }
 export function backupMetadata(db: DatabaseSync, id: string, key: Buffer): BackupMetadata {
   const row = db.prepare('SELECT metadata FROM app_backups WHERE id=?').get(id) as
-    { metadata: string } | undefined
+    | { metadata: string }
+    | undefined
   if (!row) throw new Error('Backup not found.')
   return backupMetadataSchema.parse(JSON.parse(openEnvironment(row.metadata, key).metadata!))
 }
@@ -250,7 +251,8 @@ export function getBackupOperation(db: DatabaseSync, id: string): BackupOperatio
       'SELECT destination_id AS destinationId,backup_id AS backupId,phase,previous,snapshot_id AS snapshotId,container_id AS containerId,container_name AS containerName,image_id AS imageId FROM backup_operations WHERE id=?',
     )
     .get(id) as
-    (Omit<BackupOperation, 'job' | 'previous'> & { previous: string | null }) | undefined
+    | (Omit<BackupOperation, 'job' | 'previous'> & { previous: string | null })
+    | undefined
   return row
     ? { ...row, job: getJob(db, id)!, previous: row.previous ? JSON.parse(row.previous) : null }
     : null

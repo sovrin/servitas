@@ -54,7 +54,8 @@ export function createOwner(db: DatabaseSync, email: string, passwordHash: strin
 
 export async function authenticate(db: DatabaseSync, email: string, password: string) {
   const owner = db.prepare('SELECT email, password_hash FROM owner WHERE id = 1').get() as
-    { email: string; password_hash: string } | undefined
+    | { email: string; password_hash: string }
+    | undefined
   if (!owner) return false
   const validPassword = await verifyPassword(password, owner.password_hash)
   return owner.email === email && validPassword
