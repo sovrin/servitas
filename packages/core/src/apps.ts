@@ -26,12 +26,14 @@ export function listApps(db: DatabaseSync, includeRemoved = false): HostedApp[] 
 }
 export function getApp(db: DatabaseSync, id: string): HostedApp | null {
   const row = db.prepare(`SELECT ${fields} FROM apps WHERE id = ?`).get(id) as unknown as
-    AppRow | undefined
+    | AppRow
+    | undefined
   return row ? parseApp(row) : null
 }
 export function appEnvironment(db: DatabaseSync, id: string, key: Buffer) {
   const row = db.prepare('SELECT environment FROM apps WHERE id = ?').get(id) as
-    { environment: string } | undefined
+    | { environment: string }
+    | undefined
   if (!row) throw new Error('App not found.')
   return openEnvironment(row.environment, key)
 }
